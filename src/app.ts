@@ -1,6 +1,5 @@
 import { resolve, init } from 'smart-factory';
-import { ConfigTypes, ConfigModules } from './configs';
-import { LoggerTypes, LoggerModules } from './loggers';
+import { EndpointTypes, EndpointModules } from './endpoints';
 
 (async () => {
   await init({
@@ -10,8 +9,6 @@ import { LoggerTypes, LoggerModules } from './loggers';
     ]
   });
 
-  const cfg = resolve<ConfigTypes.RootConfig>(ConfigModules.RootConfig);
-  const log = resolve<LoggerTypes.Logger>(LoggerModules.Logger);
-
-  log.info(cfg);
+  const runHttp = resolve<EndpointTypes.EndpointRunner>(EndpointModules.EndpointRunner);
+  runHttp();
 })();

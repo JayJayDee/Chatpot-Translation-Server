@@ -4,4 +4,8 @@ export namespace EndpointModules {
   export enum Utils {
     WrapAync = 'Endpoint/Utils/WrapAsync'
   }
+
+  export enum Translation {
+    Translate = 'Endpoint/Translate'
+  }
 }

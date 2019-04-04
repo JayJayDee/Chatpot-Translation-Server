@@ -46,3 +46,29 @@ injectable(EndpointModules.Translation.Translate,
       })
     ]
   }));
+
+
+  injectable(EndpointModules.Translation.TranslateRooms,
+    [ EndpointModules.Utils.WrapAync ],
+    async (wrapAsync: EndpointTypes.Utils.WrapAsync) => ({
+      uri: '/translate/room',
+      method: EndpointTypes.EndpointMethod.GET,
+      handler: [
+        wrapAsync(async (req, res, next) => {
+          res.status(200).json({});
+        })
+      ]
+    }));
+
+
+  injectable(EndpointModules.Translation.TranslateMessages,
+    [ EndpointModules.Utils.WrapAync ],
+    async (wrapAsync: EndpointTypes.Utils.WrapAsync) => ({
+      uri: '/translate/message',
+      method: EndpointTypes.EndpointMethod.GET,
+      handler: [
+        wrapAsync(async (req, res, next) => {
+          res.status(200).json({});
+        })
+      ]
+    }));

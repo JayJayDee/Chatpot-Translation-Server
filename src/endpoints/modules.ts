@@ -6,6 +6,8 @@ export namespace EndpointModules {
   }
 
   export enum Translation {
-    Translate = 'Endpoint/Translate'
+    Translate = 'Endpoint/Translate',
+    TranslateRooms = 'Endpoint/TranslateRooms',
+    TranslateMessages = 'Endpoint/TranslateMessages'
   }
 }

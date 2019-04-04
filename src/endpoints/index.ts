@@ -6,8 +6,14 @@ export { EndpointModules } from './modules';
 
 // register endpoints to container.
 injectable(EndpointModules.Endpoints,
-  [ EndpointModules.Translation.Translate ],
-  async (translate) =>
+  [ EndpointModules.Translation.Translate,
+    EndpointModules.Translation.TranslateRooms,
+    EndpointModules.Translation.TranslateMessages ],
+  async (translate,
+    translateRooms,
+    translateMessages) =>
     ([
-      translate
+      translate,
+      translateRooms,
+      translateMessages
     ]));

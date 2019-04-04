@@ -3,7 +3,7 @@ import { createHash } from 'crypto';
 import { TranslatorModules } from './modules';
 import { TranslatorTypes } from './types';
 
-const translate = require('google-translate-api');
+const translate = require('@vitalets/google-translate-api');
 
 injectable(TranslatorModules.TranslateViaGoogle,
   [],

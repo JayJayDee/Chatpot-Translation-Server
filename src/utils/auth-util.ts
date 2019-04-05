@@ -12,6 +12,11 @@ const cipher = (secret: string) =>
 const decipher = (secret: string) =>
   createDecipher('des-ede3-cbc', secret);
 
+injectable(UtilModules.Auth.DecryptMessageToken,
+  [ ConfigModules.CredentialConfig ],
+  async (cfg: ConfigTypes.CredentialConfig) => {});
+  // TODO: to be implemented.
+
 injectable(UtilModules.Auth.CreateMemberToken,
   [ ConfigModules.CredentialConfig ],
   async (cfg: ConfigTypes.CredentialConfig): Promise<UtilTypes.Auth.CreateMemberToken> =>

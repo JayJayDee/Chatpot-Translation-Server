@@ -12,6 +12,7 @@ export namespace ConfigTypes {
     sessionExpires: number;
     authSecret: string;
     roomSecret: string;
+    messageSecret: string;
   };
   export type MysqlConfig = {
     host: string;

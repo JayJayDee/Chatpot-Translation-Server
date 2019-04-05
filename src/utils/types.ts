@@ -19,5 +19,6 @@ export namespace UtilTypes {
     export type CreateRoomToken = (roomNo: number) => string;
     export type DecryptRoomToken = (roomToken: string) => RoomPayload;
     export type ValidateSessionKey = (sessionKey: string) => DecryptedSessionKey;
+    export type DecryptMessageToken = (roomToken: string) => void;
   }
 }

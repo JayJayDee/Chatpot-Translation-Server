@@ -13,7 +13,8 @@ injectable(ConfigModules.EmptyConfig, [], async (): Promise<ConfigTypes.RootConf
     authEnabled: null,
     sessionExpires: null,
     authSecret: null,
-    roomSecret: null
+    roomSecret: null,
+    messageSecret: null
   },
   mysql: {
     host: null,
@@ -33,6 +34,7 @@ injectable(ConfigModules.ConfigRules, [],
     { key: 'CREDENTIAL_AUTH_SECRET', path: ['credential', 'authSecret'] },
     { key: 'CREDENTIAL_AUTH_SESSION_EXPIRES', path: ['credential', 'sessionExpires'], defaultValue: 60 },
     { key: 'CREDENTIAL_ROOM_SECRET', path: ['credential', 'roomSecret'] },
+    { key: 'CREDENTIAL_MESSAGE_SECRET', path: ['credential', 'messageSecret'] },
     { key: 'MYSQL_HOST', path: ['mysql', 'host'] },
     { key: 'MYSQL_PORT', path: ['mysql', 'port'] },
     { key: 'MYSQL_USER', path: ['mysql', 'user'] },

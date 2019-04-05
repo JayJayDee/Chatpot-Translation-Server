@@ -4,6 +4,7 @@ export namespace UtilModules {
     DecryptMemberToken = 'Util/Auth/DecryptMemberToken',
     CrateRoomToken = 'Util/Auth/CreateRoomToken',
     DecryptRoomToken = 'Util/Auth/DecryptRoomToken',
-    ValidateSessionKey = 'Util/Auth/ValidateSessionkey'
+    ValidateSessionKey = 'Util/Auth/ValidateSessionkey',
+    DecryptMessageToken = 'Util/Auth/DecryptMessageToken'
   }
 }

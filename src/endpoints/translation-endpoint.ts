@@ -4,13 +4,17 @@ import { EndpointModules } from './modules';
 import { EndpointTypes } from './types';
 import { InvalidParamError } from '../errors';
 import { TranslatorTypes, TranslatorModules } from '../translator';
-import { UtilModules } from '../utils';
+import { UtilModules, UtilTypes } from '../utils';
 
 injectable(EndpointModules.Translation.TranslateRooms,
   [ EndpointModules.Utils.WrapAync,
     UtilModules.Auth.DecryptRoomToken,
     TranslatorModules.Translate ],
-  async (wrapAsync: EndpointTypes.Utils.WrapAsync) => ({
+  async (wrapAsync: EndpointTypes.Utils.WrapAsync,
+    decryptRoomToken: UtilTypes.Auth.DecryptRoomToken,
+    translate: TranslatorTypes.Translate) =>
+
+  ({
     uri: '/translate/room',
     method: EndpointTypes.EndpointMethod.GET,
     handler: [
@@ -24,7 +28,10 @@ injectable(EndpointModules.Translation.TranslateRooms,
         }
 
         const queries = parseQuery(queriesExpr, from, to);
-        console.log(queries);
+        queries.forEach((q) => {
+          if (decryptRoomToken(q.key) === null)
+            throw new InvalidParamError(`invalid room_token: ${q.key}`);
+        });
 
         res.status(200).json({});
       })
@@ -35,7 +42,11 @@ injectable(EndpointModules.Translation.TranslateRooms,
 injectable(EndpointModules.Translation.TranslateMessages,
   [ EndpointModules.Utils.WrapAync,
     TranslatorModules.Translate ],
-  async (wrapAsync: EndpointTypes.Utils.WrapAsync) => ({
+  async (wrapAsync: EndpointTypes.Utils.WrapAsync,
+    translate: TranslatorTypes.Translate) =>
+
+  ({
+
     uri: '/translate/message',
     method: EndpointTypes.EndpointMethod.GET,
     handler: [
@@ -55,6 +66,7 @@ injectable(EndpointModules.Translation.TranslateMessages,
       })
     ]
   }));
+
 
 const parseQuery =
   (queryExpr: string, from: string, to: string): TranslatorTypes.TranslateParam[] => {

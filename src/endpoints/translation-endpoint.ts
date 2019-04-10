@@ -20,14 +20,13 @@ injectable(EndpointModules.Translation.TranslateRooms,
     handler: [
       wrapAsync(async (req, res, next) => {
         const queriesExpr = req.query.query;
-        const from = req.query.from;
         const to = req.query.to;
 
-        if (!queriesExpr || !from || !to) {
+        if (!queriesExpr || !to) {
           throw new InvalidParamError('query required');
         }
 
-        const queries = parseQuery(queriesExpr, from, to);
+        const queries = parseQuery(queriesExpr, to);
         queries.map((q) => {
           if (decryptRoomToken(q.key) === null)
             throw new InvalidParamError(`invalid room_token: ${q.key}`);
@@ -54,14 +53,13 @@ injectable(EndpointModules.Translation.TranslateMessages,
     handler: [
       wrapAsync(async (req, res, next) => {
         const queriesExpr = req.query.query;
-        const from = req.query.from;
         const to = req.query.to;
 
-        if (!queriesExpr || !from || !to) {
+        if (!queriesExpr || !to) {
           throw new InvalidParamError('query required');
         }
 
-        const queries = parseQuery(queriesExpr, from, to);
+        const queries = parseQuery(queriesExpr, to);
         console.log(queries);
 
         res.status(200).json({});
@@ -71,22 +69,22 @@ injectable(EndpointModules.Translation.TranslateMessages,
 
 
 const parseQuery =
-  (queryExpr: string, from: string, to: string): TranslatorTypes.TranslateParam[] => {
+  (queryExpr: string, to: string): TranslatorTypes.TranslateParam[] => {
     let queries = null;
     try {
       queries = JSON.parse(queryExpr);
       if (isArray(queries) === false) throw new Error('');
       queries.map((q: any) => {
-        if (!q.key || !q.message) throw new Error('');
+        if (!q.key || !q.message || !q.from) throw new Error('');
       });
     } catch (err) {
-      throw new InvalidParamError('query must be a stringified json-array, (attr: key, message)');
+      throw new InvalidParamError('query must be a stringified json-array, (attr: key, message, from)');
     }
 
     const params: TranslatorTypes.TranslateParam[] =
       queries.map((q: any) => ({
-        from: from,
-        to: to,
+        from: q.from,
+        to,
         message: q.message,
         key: q.key
       }));

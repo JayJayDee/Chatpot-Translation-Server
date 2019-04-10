@@ -28,12 +28,14 @@ injectable(EndpointModules.Translation.TranslateRooms,
         }
 
         const queries = parseQuery(queriesExpr, from, to);
-        queries.forEach((q) => {
+        queries.map((q) => {
           if (decryptRoomToken(q.key) === null)
             throw new InvalidParamError(`invalid room_token: ${q.key}`);
         });
+        const promises = queries.map((q) => translate(q));
+        const resp = await Promise.all(promises);
 
-        res.status(200).json({});
+        res.status(200).json(resp);
       })
     ]
   }));
@@ -78,7 +80,7 @@ const parseQuery =
         if (!q.key || !q.message) throw new Error('');
       });
     } catch (err) {
-      throw new InvalidParamError('query must be a stringified json-array, (attr: key, message');
+      throw new InvalidParamError('query must be a stringified json-array, (attr: key, message)');
     }
 
     const params: TranslatorTypes.TranslateParam[] =

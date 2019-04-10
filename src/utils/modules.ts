@@ -7,4 +7,8 @@ export namespace UtilModules {
     ValidateSessionKey = 'Util/Auth/ValidateSessionkey',
     DecryptMessageToken = 'Util/Auth/DecryptMessageToken'
   }
+
+  export enum Translate {
+    CreateTranslationHash = 'Util/Translate/CreateTranslationHash'
+  }
 }

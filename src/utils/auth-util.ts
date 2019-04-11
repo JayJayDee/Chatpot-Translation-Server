@@ -25,7 +25,7 @@ injectable(UtilModules.Auth.DecryptMessageId,
           ];
           const merged = buffers.join('');
           const splited = merged.split('&');
-          if (splited.length === 3) return { valid: false };
+          if (splited.length !== 3) return { valid: false };
         } catch (err) {
           return { valid: false };
         }

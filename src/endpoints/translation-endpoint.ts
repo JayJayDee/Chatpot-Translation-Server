@@ -49,7 +49,6 @@ injectable(EndpointModules.Translation.TranslateMessages,
     translate: TranslatorTypes.Translate) =>
 
   ({
-
     uri: '/translate/message',
     method: EndpointTypes.EndpointMethod.GET,
     handler: [

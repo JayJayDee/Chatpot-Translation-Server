@@ -5,7 +5,7 @@ export namespace UtilModules {
     CrateRoomToken = 'Util/Auth/CreateRoomToken',
     DecryptRoomToken = 'Util/Auth/DecryptRoomToken',
     ValidateSessionKey = 'Util/Auth/ValidateSessionkey',
-    DecryptMessageToken = 'Util/Auth/DecryptMessageToken'
+    DecryptMessageId = 'Util/Auth/DecryptMessageToken'
   }
 
   export enum Translate {

@@ -20,13 +20,17 @@ export namespace UtilTypes {
     member_no: number;
   };
 
+  export type DecryptedMessageId = {
+    valid: boolean;
+  };
+
   export namespace Auth {
     export type CreateMemberToken = (memberNo: number) => string;
     export type DecryptMemberToken = (memberToken: string) => MemberPayload;
     export type CreateRoomToken = (roomNo: number) => string;
     export type DecryptRoomToken = (roomToken: string) => RoomPayload;
     export type ValidateSessionKey = (sessionKey: string) => DecryptedSessionKey;
-    export type DecryptMessageToken = (roomToken: string) => void;
+    export type DecryptMessageId = (messageId: string) => DecryptedMessageId;
   }
 
   export namespace Translate {

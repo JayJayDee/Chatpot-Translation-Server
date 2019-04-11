@@ -42,8 +42,10 @@ injectable(EndpointModules.Translation.TranslateRooms,
 
 injectable(EndpointModules.Translation.TranslateMessages,
   [ EndpointModules.Utils.WrapAync,
+    UtilModules.Auth.DecryptMessageId,
     TranslatorModules.Translate ],
   async (wrapAsync: EndpointTypes.Utils.WrapAsync,
+    decryptMessageId: UtilTypes.Auth.DecryptMessageId,
     translate: TranslatorTypes.Translate) =>
 
   ({
@@ -60,9 +62,15 @@ injectable(EndpointModules.Translation.TranslateMessages,
         }
 
         const queries = parseQuery(queriesExpr, to);
-        console.log(queries);
+        queries.map((q) => {
+          if (decryptMessageId(q.key).valid === false) {
+            throw new InvalidParamError(`invalid message id: ${q.key}`);
+          }
+        });
 
-        res.status(200).json({});
+        const promises = queries.map((q) => translate(q));
+        const resp = await Promise.all(promises);
+        res.status(200).json(resp);
       })
     ]
   }));

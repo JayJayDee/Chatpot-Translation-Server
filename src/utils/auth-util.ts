@@ -12,10 +12,26 @@ const cipher = (secret: string) =>
 const decipher = (secret: string) =>
   createDecipher('des-ede3-cbc', secret);
 
-injectable(UtilModules.Auth.DecryptMessageToken,
-  [ ConfigModules.CredentialConfig ],
-  async (cfg: ConfigTypes.CredentialConfig) => {});
-  // TODO: to be implemented.
+injectable(UtilModules.Auth.DecryptMessageId,
+  [ ConfigModules.CredentialConfig],
+  async (cfg: ConfigTypes.CredentialConfig): Promise<UtilTypes.Auth.DecryptMessageId> =>
+
+      (messageId) => {
+        const dp = decipher(cfg.messageSecret);
+        try {
+          const buffers = [
+            dp.update(messageId, 'hex', 'utf8'),
+            dp.final('utf8')
+          ];
+          const merged = buffers.join('');
+          const splited = merged.split('&');
+          if (splited.length === 3) return { valid: false };
+        } catch (err) {
+          return { valid: false };
+        }
+        return { valid: true };
+      });
+
 
 injectable(UtilModules.Auth.CreateMemberToken,
   [ ConfigModules.CredentialConfig ],

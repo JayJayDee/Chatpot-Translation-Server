@@ -4,7 +4,7 @@ import { StoreModules } from './modules';
 import { StoreTypes } from './types';
 import { MysqlModules, MysqlTypes } from '../mysql';
 
-interface HashedQuery extends StoreTypes.TranslationQuery {
+interface HashedQuery extends StoreTypes.Translation {
   hash: string;
 }
 
@@ -24,9 +24,31 @@ injectable(StoreModules.StoreTranslation,
         });
       });
 
-      console.log(hashmap);
       await mysql.transaction(async (connection) => {
-        // TODO: transactional insert.
+        const promises = Object.keys(hashmap).map((k) => {
+          const tableName = `translated_${k}`;
+          const values: any[] = [];
+          const valuesQueries: string[] = [];
+
+          hashmap[k].forEach((q) => {
+            valuesQueries.push('(?,?,?,?,?,NOW())');
+            values.push(q.hash, q.from, q.to, q.message, q.translated);
+          });
+
+          const sql = `
+            INSERT INTO ${tableName}
+              (hash, src, dst, original, translated, reg_date)
+            VALUES
+              ${valuesQueries.join(',')}
+          `;
+          return connection.query(sql, values);
+        });
+
+        try {
+          await Promise.all(promises);
+        } catch (err) {
+          connection.rollback();
+        }
       });
     });
 

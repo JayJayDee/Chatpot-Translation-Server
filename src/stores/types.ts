@@ -12,5 +12,5 @@ export namespace StoreTypes {
   };
 
   export type StoreTranslations = (translates: Translation[]) => Promise<void>;
-  export type FetchTranslations = (queries: TranslationQuery) => Promise<Translation[]>;
+  export type FetchTranslations = (queries: TranslationQuery[]) => Promise<Translation[]>;
 }

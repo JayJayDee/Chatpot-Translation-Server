@@ -13,17 +13,7 @@ injectable(StoreModules.StoreTranslation,
   async (mysql: MysqlTypes.MysqlDriver): Promise<StoreTypes.StoreTranslations> =>
 
     async (translations) => {
-      const hashmap: {[firstLetter: string]: HashedQuery[]} = {};
-      translations.forEach((t) => {
-        const hash = createQueryHash(t);
-        const first = hash.substring(0, 1);
-        if (!hashmap[first]) hashmap[first] = [];
-        hashmap[first].push({
-          hash,
-          ... t
-        });
-      });
-
+      const hashmap = hashedQueryMap(translations);
       await mysql.transaction(async (connection) => {
         const promises = Object.keys(hashmap).map((k) => {
           const tableName = `translated_${k}`;
@@ -64,6 +54,19 @@ injectable(StoreModules.FetchTranslation,
       return [];
     });
 
+const hashedQueryMap = (translations: StoreTypes.Translation[]): {[key: string]: HashedQuery[]} => {
+  const hashmap: {[firstLetter: string]: HashedQuery[]} = {};
+  translations.forEach((t) => {
+    const hash = createQueryHash(t);
+    const first = hash.substring(0, 1);
+    if (!hashmap[first]) hashmap[first] = [];
+    hashmap[first].push({
+      hash,
+      ... t
+    });
+  });
+  return hashmap;
+};
 
 const createQueryHash = (query: StoreTypes.TranslationQuery) =>
   createHash('sha256').update(`${sanitizeMessage(query.message)}_${query.from}_${query.to}`).digest('hex');

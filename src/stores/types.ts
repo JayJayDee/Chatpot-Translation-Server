@@ -4,11 +4,13 @@ export namespace StoreTypes {
     to: string;
     message: string;
     translated: string;
+    key?: string;
   };
   export type TranslationQuery = {
     from: string;
     to: string;
     message: string;
+    key?: string;
   };
 
   export type StoreTranslations = (translates: Translation[]) => Promise<void>;

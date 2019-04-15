@@ -4,14 +4,30 @@ import { StoreModules } from './modules';
 import { StoreTypes } from './types';
 import { MysqlModules, MysqlTypes } from '../mysql';
 
+interface HashedQuery extends StoreTypes.TranslationQuery {
+  hash: string;
+}
+
 injectable(StoreModules.StoreTranslation,
   [ MysqlModules.Mysql ],
   async (mysql: MysqlTypes.MysqlDriver): Promise<StoreTypes.StoreTranslations> =>
 
     async (translations) => {
-      const hashes = translations.map(createQueryHash);
-      console.log(hashes);
-      // TODO: select using hashes
+      const hashmap: {[firstLetter: string]: HashedQuery[]} = {};
+      translations.forEach((t) => {
+        const hash = createQueryHash(t);
+        const first = hash.substring(0, 1);
+        if (!hashmap[first]) hashmap[first] = [];
+        hashmap[first].push({
+          hash,
+          ... t
+        });
+      });
+
+      console.log(hashmap);
+      await mysql.transaction(async (connection) => {
+        // TODO: transactional insert.
+      });
     });
 
 
@@ -25,6 +41,7 @@ injectable(StoreModules.FetchTranslation,
       // TODO: select using hashes
       return [];
     });
+
 
 const createQueryHash = (query: StoreTypes.TranslationQuery) =>
   createHash('sha256').update(`${sanitizeMessage(query.message)}_${query.from}_${query.to}`).digest('hex');

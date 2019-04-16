@@ -4,7 +4,10 @@ import { StoreModules } from './modules';
 import { StoreTypes } from './types';
 import { MysqlModules, MysqlTypes } from '../mysql';
 
-interface HashedQuery extends StoreTypes.Translation {
+interface HashedTranslation extends StoreTypes.Translation {
+  hash: string;
+}
+interface HashedQuery extends StoreTypes.TranslationQuery {
   hash: string;
 }
 
@@ -13,7 +16,7 @@ injectable(StoreModules.StoreTranslation,
   async (mysql: MysqlTypes.MysqlDriver): Promise<StoreTypes.StoreTranslations> =>
 
     async (translations) => {
-      const hashmap = hashedQueryMap(translations);
+      const hashmap = hashedTranslation(translations);
       await mysql.transaction(async (connection) => {
         const promises = Object.keys(hashmap).map((k) => {
           const tableName = `translated_${k}`;
@@ -48,13 +51,35 @@ injectable(StoreModules.FetchTranslation,
   async (mysql: MysqlTypes.MysqlDriver): Promise<StoreTypes.FetchTranslations> =>
 
     async (queries) => {
-      const hashes = queries.map(createQueryHash);
-      console.log(hashes);
-      // TODO: select using hashes
+      const hashmap = hashedQuery(queries);
+      const rows: any[] = await mysql.transaction(async (connection) => {
+        const queryResp: any[] = [];
+        Object.keys(hashmap).forEach((k) => {
+          const tableQueries = hashmap[k];
+          console.log(tableQueries);
+        });
+        return queryResp;
+      });
+      console.log(rows);
       return [];
     });
 
-const hashedQueryMap = (translations: StoreTypes.Translation[]): {[key: string]: HashedQuery[]} => {
+
+const hashedTranslation = (translations: StoreTypes.Translation[]): {[key: string]: HashedTranslation[]} => {
+  const hashmap: {[firstLetter: string]: HashedTranslation[]} = {};
+  translations.forEach((t) => {
+    const hash = createQueryHash(t);
+    const first = hash.substring(0, 1);
+    if (!hashmap[first]) hashmap[first] = [];
+    hashmap[first].push({
+      hash,
+      ... t
+    });
+  });
+  return hashmap;
+};
+
+const hashedQuery = (translations: StoreTypes.TranslationQuery[]): {[key: string]: HashedQuery[]} => {
   const hashmap: {[firstLetter: string]: HashedQuery[]} = {};
   translations.forEach((t) => {
     const hash = createQueryHash(t);

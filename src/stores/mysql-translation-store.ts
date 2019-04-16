@@ -52,15 +52,12 @@ injectable(StoreModules.FetchTranslation,
 
     async (queries) => {
       const hashmap = hashedQuery(queries);
-      const rows: any[] = await mysql.transaction(async (connection) => {
-        const queryResp: any[] = [];
-        Object.keys(hashmap).forEach((k) => {
-          const tableQueries = hashmap[k];
-          console.log(tableQueries);
-        });
-        return queryResp;
-      });
-      console.log(rows);
+      const sqls: string[] = [];
+      const values: any[] = [];
+
+      console.log(hashmap);
+      console.log(sqls);
+      console.log(values);
       return [];
     });
 

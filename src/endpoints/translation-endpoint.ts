@@ -5,14 +5,17 @@ import { EndpointTypes } from './types';
 import { InvalidParamError } from '../errors';
 import { TranslatorTypes, TranslatorModules } from '../translator';
 import { UtilModules, UtilTypes } from '../utils';
+import { StoreModules, StoreTypes } from '../stores';
 
 injectable(EndpointModules.Translation.TranslateRooms,
   [ EndpointModules.Utils.WrapAync,
     UtilModules.Auth.DecryptRoomToken,
-    TranslatorModules.Translate ],
+    TranslatorModules.Translate,
+    StoreModules.FetchTranslation ],
   async (wrapAsync: EndpointTypes.Utils.WrapAsync,
     decryptRoomToken: UtilTypes.Auth.DecryptRoomToken,
-    translate: TranslatorTypes.Translate) =>
+    translate: TranslatorTypes.Translate,
+    fetchTranslationCache: StoreTypes.FetchTranslations) =>
 
   ({
     uri: '/translate/room',
@@ -31,6 +34,9 @@ injectable(EndpointModules.Translation.TranslateRooms,
           if (decryptRoomToken(q.key) === null)
             throw new InvalidParamError(`invalid room_token: ${q.key}`);
         });
+
+        await fetchTranslationCache(queries);
+
         const promises = queries.map((q) => translate(q));
         const resp = await Promise.all(promises);
 

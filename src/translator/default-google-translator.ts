@@ -19,7 +19,10 @@ const translateWithKey =
           to: param.to
         }).then((resp: any) => {
           resolve({
+            from: param.from,
+            to: param.to,
             key: param.key,
+            message: param.message,
             translated: resp.text,
             hash: translateHash(param)
           });

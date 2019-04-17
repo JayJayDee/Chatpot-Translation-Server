@@ -6,7 +6,10 @@ export namespace TranslatorTypes {
     message: string;
   };
   export type Translated = {
+    from: string;
+    to: string;
     key: string;
+    message: string;
     translated: string;
     hash: string;
   };

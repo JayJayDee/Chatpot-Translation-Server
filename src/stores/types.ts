@@ -5,6 +5,7 @@ export namespace StoreTypes {
     message: string;
     translated: string;
     key: string;
+    hash: string;
   };
   export type TranslationQuery = {
     from: string;
@@ -18,6 +19,7 @@ export namespace StoreTypes {
     message: string;
     translated: string;
     key: string;
+    hash: string;
   };
 
   export type StoreTranslations = (translates: Translation[]) => Promise<void>;

@@ -12,12 +12,14 @@ injectable(EndpointModules.Translation.TranslateRooms,
     UtilModules.Auth.DecryptRoomToken,
     TranslatorModules.Translate,
     StoreModules.FetchTranslation,
-    StoreModules.StoreTranslation ],
+    StoreModules.StoreTranslation,
+    UtilModules.Translate.CreateTranslationHash ],
   async (wrapAsync: EndpointTypes.Utils.WrapAsync,
     decryptRoomToken: UtilTypes.Auth.DecryptRoomToken,
     translate: TranslatorTypes.Translate,
     fetchTranslationCache: StoreTypes.FetchTranslations,
-    storeTranslationsToCache: StoreTypes.StoreTranslations) =>
+    storeTranslationsToCache: StoreTypes.StoreTranslations,
+    translationHash: UtilTypes.Translate.CreateTranslateHash) =>
 
   ({
     uri: '/translate/room',
@@ -37,14 +39,18 @@ injectable(EndpointModules.Translation.TranslateRooms,
             throw new InvalidParamError(`invalid room_token: ${q.key}`);
         });
 
-        await fetchTranslationCache(queries);
+        const caches = await fetchTranslationCache(queries);
 
-        const promises = queries.map((q) => translate(q));
-        const resp = await Promise.all(promises);
+        const filteredQueries = queries.filter((q) =>
+          caches.filter((c) => c.hash === translationHash(q)).length === 0);
 
-        await storeTranslationsToCache(resp);
-
-        res.status(200).json(resp);
+        let resp: TranslatorTypes.Translated[] = [];
+        if (filteredQueries.length > 0) {
+          const promises = filteredQueries.map((q) => translate(q));
+          resp = await Promise.all(promises);
+          await storeTranslationsToCache(resp);
+        }
+        res.status(200).json([... caches, ... resp ]);
       })
     ]
   }));

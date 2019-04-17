@@ -11,6 +11,7 @@ export namespace TranslatorTypes {
     key: string;
     message: string;
     translated: string;
+    hash: string;
   };
   export type TranslatedHash = string;
 

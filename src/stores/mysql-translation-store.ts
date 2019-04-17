@@ -1,9 +1,9 @@
 import { injectable } from 'smart-factory';
-import { createHash } from 'crypto';
 import { StoreModules } from './modules';
 import { StoreTypes } from './types';
 import { MysqlModules, MysqlTypes } from '../mysql';
 import { LoggerModules, LoggerTypes } from '../loggers';
+import { UtilTypes, UtilModules } from '../utils';
 
 interface HashedTranslation extends StoreTypes.Translation {
   hash: string;
@@ -14,12 +14,14 @@ interface HashedQuery extends StoreTypes.TranslationQuery {
 
 injectable(StoreModules.StoreTranslation,
   [ LoggerModules.Logger,
-    MysqlModules.Mysql ],
+    MysqlModules.Mysql,
+    UtilModules.Translate.CreateTranslationHash ],
   async (log: LoggerTypes.Logger,
-    mysql: MysqlTypes.MysqlDriver): Promise<StoreTypes.StoreTranslations> =>
+    mysql: MysqlTypes.MysqlDriver,
+    translationHash: UtilTypes.Translate.CreateTranslateHash): Promise<StoreTypes.StoreTranslations> =>
 
     async (translations) => {
-      const hashmap = hashedTranslation(translations);
+      const hashmap = hashedTranslation(translations, translationHash);
       await mysql.transaction(async (connection) => {
         const promises = Object.keys(hashmap).map((k) => {
           const tableName = `translated_${k}`;
@@ -53,12 +55,14 @@ injectable(StoreModules.StoreTranslation,
 
 injectable(StoreModules.FetchTranslation,
   [ LoggerModules.Logger,
-    MysqlModules.Mysql ],
+    MysqlModules.Mysql,
+    UtilModules.Translate.CreateTranslationHash ],
   async (log: LoggerTypes.Logger,
-    mysql: MysqlTypes.MysqlDriver): Promise<StoreTypes.FetchTranslations> =>
+    mysql: MysqlTypes.MysqlDriver,
+    translationHash: UtilTypes.Translate.CreateTranslateHash): Promise<StoreTypes.FetchTranslations> =>
 
     async (queries) => {
-      const hashmap = hashedQuery(queries);
+      const hashmap = hashedQuery(queries, translationHash);
       const hashKeyMap: {[hash: string]: string} = {};
 
       const values: any[] = [];
@@ -92,43 +96,42 @@ injectable(StoreModules.FetchTranslation,
         to: r.to,
         translated: r.translated,
         message: r.message,
-        key: hashKeyMap[r.hash]
+        key: hashKeyMap[r.hash],
+        hash: r.hash
       }));
       log.debug(`[translation-store] translation cache fetched, num_query=${queries.length}, num_result=${result.length}`);
       return result;
     });
 
 
-const hashedTranslation = (translations: StoreTypes.Translation[]): {[key: string]: HashedTranslation[]} => {
-  const hashmap: {[firstLetter: string]: HashedTranslation[]} = {};
-  translations.forEach((t) => {
-    const hash = createQueryHash(t);
-    const first = hash.substring(0, 1);
-    if (!hashmap[first]) hashmap[first] = [];
-    hashmap[first].push({
-      hash,
-      ... t
+const hashedTranslation =
+  (translations: StoreTypes.Translation[],
+    translationHash: UtilTypes.Translate.CreateTranslateHash): {[key: string]: HashedTranslation[]} => {
+    const hashmap: {[firstLetter: string]: HashedTranslation[]} = {};
+    translations.forEach((t) => {
+      const hash = translationHash(t);
+      const first = hash.substring(0, 1);
+      if (!hashmap[first]) hashmap[first] = [];
+      hashmap[first].push({
+        hash,
+        ... t
+      });
     });
-  });
-  return hashmap;
-};
+    return hashmap;
+  };
 
-const hashedQuery = (translations: StoreTypes.TranslationQuery[]): {[key: string]: HashedQuery[]} => {
-  const hashmap: {[firstLetter: string]: HashedQuery[]} = {};
-  translations.forEach((t) => {
-    const hash = createQueryHash(t);
-    const first = hash.substring(0, 1);
-    if (!hashmap[first]) hashmap[first] = [];
-    hashmap[first].push({
-      hash,
-      ... t
+const hashedQuery =
+  (translations: StoreTypes.TranslationQuery[],
+    translationHash: UtilTypes.Translate.CreateTranslateHash): {[key: string]: HashedQuery[]} => {
+    const hashmap: {[firstLetter: string]: HashedQuery[]} = {};
+    translations.forEach((t) => {
+      const hash = translationHash(t);
+      const first = hash.substring(0, 1);
+      if (!hashmap[first]) hashmap[first] = [];
+      hashmap[first].push({
+        hash,
+        ... t
+      });
     });
-  });
-  return hashmap;
-};
-
-const createQueryHash = (query: StoreTypes.TranslationQuery) =>
-  createHash('sha256').update(`${sanitizeMessage(query.message)}_${query.from}_${query.to}`).digest('hex');
-
-const sanitizeMessage = (message: string) =>
-  message.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\ ]/gi, '');
+    return hashmap;
+  };

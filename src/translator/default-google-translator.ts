@@ -24,6 +24,7 @@ const translateWithKey =
             key: param.key,
             message: param.message,
             translated: resp.text,
+            hash: translateHash(param)
           });
         }).catch(reject);
       });

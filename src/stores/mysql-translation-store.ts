@@ -3,6 +3,7 @@ import { createHash } from 'crypto';
 import { StoreModules } from './modules';
 import { StoreTypes } from './types';
 import { MysqlModules, MysqlTypes } from '../mysql';
+import { LoggerModules, LoggerTypes } from '../loggers';
 
 interface HashedTranslation extends StoreTypes.Translation {
   hash: string;
@@ -12,8 +13,10 @@ interface HashedQuery extends StoreTypes.TranslationQuery {
 }
 
 injectable(StoreModules.StoreTranslation,
-  [ MysqlModules.Mysql ],
-  async (mysql: MysqlTypes.MysqlDriver): Promise<StoreTypes.StoreTranslations> =>
+  [ LoggerModules.Logger,
+    MysqlModules.Mysql ],
+  async (log: LoggerTypes.Logger,
+    mysql: MysqlTypes.MysqlDriver): Promise<StoreTypes.StoreTranslations> =>
 
     async (translations) => {
       const hashmap = hashedTranslation(translations);
@@ -22,6 +25,8 @@ injectable(StoreModules.StoreTranslation,
           const tableName = `translated_${k}`;
           const values: any[] = [];
           const valuesQueries: string[] = [];
+
+          log.debug(`[translation-store] translation stored as a cache, table: ${tableName}`);
 
           hashmap[k].forEach((q) => {
             valuesQueries.push('(?,?,?,?,?,NOW())');
@@ -47,18 +52,50 @@ injectable(StoreModules.StoreTranslation,
 
 
 injectable(StoreModules.FetchTranslation,
-  [ MysqlModules.Mysql ],
-  async (mysql: MysqlTypes.MysqlDriver): Promise<StoreTypes.FetchTranslations> =>
+  [ LoggerModules.Logger,
+    MysqlModules.Mysql ],
+  async (log: LoggerTypes.Logger,
+    mysql: MysqlTypes.MysqlDriver): Promise<StoreTypes.FetchTranslations> =>
 
     async (queries) => {
       const hashmap = hashedQuery(queries);
-      const sqls: string[] = [];
-      const values: any[] = [];
+      const hashKeyMap: {[hash: string]: string} = {};
 
-      console.log(hashmap);
-      console.log(sqls);
-      console.log(values);
-      return [];
+      const values: any[] = [];
+      const sqls = Object.keys(hashmap).map((k) => {
+        const elems = hashmap[k];
+        const inClause = elems.map((i) => {
+          hashKeyMap[i.hash] = i.key;
+          values.push(i.hash);
+          return '?';
+        }).join(',');
+
+        const tableName = `translated_${k}`;
+        return `
+          SELECT
+            src AS 'from',
+            dst AS 'to',
+            original AS message,
+            translated,
+            hash
+          FROM
+            ${tableName}
+          WHERE
+            hash IN (${inClause})
+        `;
+      });
+
+      const sql = sqls.join(' UNION ');
+      const rows: any[] = await mysql.query(sql, values) as any[];
+      const result: StoreTypes.Translation[] = rows.map((r) => ({
+        from: r.from,
+        to: r.to,
+        translated: r.translated,
+        message: r.message,
+        key: hashKeyMap[r.hash]
+      }));
+      log.debug(`[translation-store] translation cache fetched, num_query=${queries.length}, num_result=${result.length}`);
+      return result;
     });
 
 

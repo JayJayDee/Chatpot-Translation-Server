@@ -11,11 +11,13 @@ injectable(EndpointModules.Translation.TranslateRooms,
   [ EndpointModules.Utils.WrapAync,
     UtilModules.Auth.DecryptRoomToken,
     TranslatorModules.Translate,
-    StoreModules.FetchTranslation ],
+    StoreModules.FetchTranslation,
+    StoreModules.StoreTranslation ],
   async (wrapAsync: EndpointTypes.Utils.WrapAsync,
     decryptRoomToken: UtilTypes.Auth.DecryptRoomToken,
     translate: TranslatorTypes.Translate,
-    fetchTranslationCache: StoreTypes.FetchTranslations) =>
+    fetchTranslationCache: StoreTypes.FetchTranslations,
+    storeTranslationsToCache: StoreTypes.StoreTranslations) =>
 
   ({
     uri: '/translate/room',
@@ -39,6 +41,8 @@ injectable(EndpointModules.Translation.TranslateRooms,
 
         const promises = queries.map((q) => translate(q));
         const resp = await Promise.all(promises);
+
+        await storeTranslationsToCache(resp);
 
         res.status(200).json(resp);
       })

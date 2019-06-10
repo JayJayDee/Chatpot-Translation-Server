@@ -6,6 +6,7 @@ import { InvalidParamError } from '../errors';
 import { TranslatorTypes, TranslatorModules } from '../translator';
 import { UtilModules, UtilTypes } from '../utils';
 import { StoreModules, StoreTypes } from '../stores';
+import { LoggerModules, LoggerTypes } from '../loggers';
 
 injectable(EndpointModules.Translation.TranslateRooms,
   [ EndpointModules.Utils.WrapAync,
@@ -59,10 +60,18 @@ injectable(EndpointModules.Translation.TranslateRooms,
 injectable(EndpointModules.Translation.TranslateMessages,
   [ EndpointModules.Utils.WrapAync,
     UtilModules.Auth.DecryptMessageId,
-    TranslatorModules.Translate ],
+    TranslatorModules.Translate,
+    StoreModules.FetchTranslation,
+    UtilModules.Translate.CreateTranslationHash,
+    StoreModules.StoreTranslation,
+    LoggerModules.Logger ],
   async (wrapAsync: EndpointTypes.Utils.WrapAsync,
     decryptMessageId: UtilTypes.Auth.DecryptMessageId,
-    translate: TranslatorTypes.Translate) =>
+    translate: TranslatorTypes.Translate,
+    fetchTranslationCache: StoreTypes.FetchTranslations,
+    translationHash: UtilTypes.Translate.CreateTranslateHash,
+    storeTranslationsToCache: StoreTypes.StoreTranslations,
+    log: LoggerTypes.Logger) =>
 
   ({
     uri: '/translate/message',
@@ -71,6 +80,8 @@ injectable(EndpointModules.Translation.TranslateMessages,
       wrapAsync(async (req, res, next) => {
         const queriesExpr = req.query.query;
         const to = req.query.to;
+
+        log.debug('[translate-message] !');
 
         if (!queriesExpr || !to) {
           throw new InvalidParamError('query required');
@@ -83,9 +94,21 @@ injectable(EndpointModules.Translation.TranslateMessages,
           }
         });
 
-        const promises = queries.map((q) => translate(q));
-        const resp = await Promise.all(promises);
-        res.status(200).json(resp);
+        const caches = await fetchTranslationCache(queries);
+
+        const filteredQueries = queries.filter((q) =>
+          caches.filter((c) => c.hash === translationHash(q)).length === 0);
+
+        let resp: TranslatorTypes.Translated[] = [];
+        if (filteredQueries.length > 0) {
+          const promises = filteredQueries.map((q) => translate(q));
+          resp = await Promise.all(promises);
+          await storeTranslationsToCache(resp);
+        }
+
+        log.debug(`[translate-message] num_requested:${queries.length}, num_gapi:${resp.length}, num_cached:${caches.length}`);
+
+        res.status(200).json([ ...caches, ...resp ]);
       })
     ]
   }));

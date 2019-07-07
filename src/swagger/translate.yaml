@@ -1,0 +1,48 @@
+---
+tags:
+  name: Translation
+  description: 채팅방 제목, 메시지 번역 APIs
+
+/translate/room:
+  get:
+    summary: 채팅방 제목 번역
+    tags: [Translation]
+    parameters:
+      - name: query
+        in: query
+        required: true
+        type: string
+        description: 번역할 원본 방제들 JSON. [{ key, from, message }] 구조의 JSONArray. 각각 room_token, 원본 언어 코드(ISO 639-1), 메시지이다.
+      - name: to
+        in: query
+        required: true
+        type: string
+        description: 번역할 목적 ISO 639-1 언어코드 예) en
+    responses:
+      200:
+        description: 성공
+        type: array
+        items:
+          $ref: '#/definitions/Translation'
+
+/translate/message:
+  get:
+    summary: 채팅방 내 메시지 번역
+    tags: [Translation]
+    parameters:
+      - name: query
+        in: query
+        required: true
+        type: string
+        description: 번역할 원본 방제들 JSON. [{ key, from, message }] 구조의 JSONArray. 각각 message_id, 원본 언어 코드(ISO 639-1), 메시지이다.
+      - name: to
+        in: query
+        required: true
+        type: string
+        description: 번역할 목적 ISO 639-1 언어코드 예) en
+    responses:
+      200:
+        description: 성공
+        type: array
+        items:
+          $ref: '#/definitions/Translation'

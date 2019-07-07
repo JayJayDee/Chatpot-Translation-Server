@@ -1,0 +1,92 @@
+definitions:
+  Ok:
+    type: object
+
+  Nick:
+    type: object
+    description: 회원의 별명
+    properties:
+      ko:
+        type: string
+        description: 한국어 별명
+      ja:
+        type: string
+        description: 일본어 별명
+      en:
+        type: string
+        description: 영어 별명
+ 
+  Avatar:
+    type: object
+    description: 프로필사진 object
+    properties:
+      profile_img:
+        type: string
+        description: 프로필 사진 image url
+      profile_thumb:
+        type: string
+        description: 프로필 썸네일 image url
+
+  Member:
+    type: object
+    properties:
+      nick:
+        $ref: '#/definitions/Nick'
+      avatar:
+        $ref: '#/definitions/Avatar'
+      token:
+        type: string
+        description: 회원의 identifier
+      auth_type:
+        type: string
+        enum: [SIMPLE, EMAIL]
+        description: 회원의 인증 type
+      region:
+        type: string
+        description: 회원의 ISO 3166-2 국가코드
+      language:
+        type: string
+        description: 회원의 ISO 639-1 언어코드
+      gender:
+        type: string
+        enum: [M, F]
+        description: 회원의 성별
+  
+  Room:
+    type: object
+    properties:
+      room_token:
+        type: string
+        description: 채팅방의 token
+      title:
+        type: string
+        description: 채팅방의 제목
+      num_attendee:
+        type: number
+        description: 채팅방의 현재 참여자 수
+      max_attendee:
+        type: number
+        description: 채팅방의 최대 참여자 수
+      owner:
+        description: 채팅방의 개설자
+        $ref: '#/definitions/Member'
+      reg_date:
+        type: string
+        description: 채팅방의 개설 일시
+  
+  Translation:
+    type: object
+    properties:
+      from:
+        type: string
+        description: 원본 언어의 ISO 639-1 언어코드
+      to:
+        type: string
+        description: 번역하기 윈하는 목적 언어의 ISO 639-1 언어코드
+      message:
+        type: string
+        description: 번역된 메시지
+      key:
+        type: string
+        description: 번역을 요청한 메시지의 identifier. room인 경우 room_token, message인 경우 message_id
+      

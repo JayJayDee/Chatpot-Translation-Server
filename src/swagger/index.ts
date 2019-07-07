@@ -1,0 +1,1 @@
+export { SwaggerModules } from './modules';

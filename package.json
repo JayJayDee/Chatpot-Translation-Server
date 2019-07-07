@@ -9,7 +9,8 @@
     "test": "jest -c jest.config.js",
     "test:coverage": "jest -c jest.config.js --coverage",
     "clean": "rimraf coverage dist",
-    "build": "npm run clean && npm run lint && npm run test && tsc -p ./tsconfig.build.json"
+    "build": "npm run clean && npm run lint && npm run test && tsc -p ./tsconfig.build.json && npm run copy-swagger",
+    "copy-swagger": "mkdir -p dist/swagger && cp src/swagger/*.yaml dist/swagger/"
   },
   "repository": {
     "type": "git",
